@@ -1,38 +1,55 @@
 import dotenv from 'dotenv';
 import http from 'http';
-import url, { UrlWithStringQuery } from 'url';
-import { getUsers } from './controllers/index';
+import { getUsers, createUser, getUser, updateUser, deleteUser } from './controllers/index';
 import { user } from './types';
+import { handleInternalError, handleNotFound } from './helper/errorsHandlers';
+import { Operations, BASIC_ROUTE, PARAM_ROUTE } from './constants'
 
 const users: Array<user> = [];
+const env = dotenv.config();
+const port = (env.parsed && env.parsed.PORT) || 4000;
 
-const BASIC_ROUTE = '/api/users';
-
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
     if (req.url) {
-        if(req.url === BASIC_ROUTE && req.method === 'GET') {
+        if (req.url.match(BASIC_ROUTE) && req.method === Operations.GET) {
             try {
                 getUsers(res, users);
             } catch {
-                res.writeHead(500, { 'Content-Type': 'application/json' })
-                res.end(JSON.stringify({ message: 'Internal Error' }))
+                handleInternalError(res);
             }
-        } else if(req.url.match(/\/api\/products\/\w+/) && req.method === 'GET') {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-        } else if(req.url === '/api/products' && req.method === 'POST') {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-        } else if(req.url.match(/\/api\/products\/\w+/) && req.method === 'PUT') {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-        } else if(req.url.match(/\/api\/products\/\w+/) && req.method === 'DELETE') {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
+        } else if(req.url.match(PARAM_ROUTE) && req.method === Operations.GET) {
+            try {
+                const id = req.url.split('/')[3];
+                getUser(id, res, users);
+            } catch {
+                handleInternalError(res);
+            }
+        } else if(req.url.match(BASIC_ROUTE)&& req.method === Operations.POST) {
+            try {
+                await createUser(req, res, users);
+            } catch {
+                handleInternalError(res);
+            }
+        } else if(req.url.match(PARAM_ROUTE) && req.method === Operations.PUT) {
+            try {
+                const id = req.url.split('/')[3];
+                await updateUser(id, req, res, users);
+            } catch {
+                handleInternalError(res);
+            }
+        } else if(req.url.match(PARAM_ROUTE) && req.method === Operations.DELETE) {
+            try {
+                const id = req.url.split('/')[3];
+                deleteUser(id, users, res);
+            } catch {
+                handleInternalError(res);
+            }
         } else {
-            res.writeHead(404, { 'Content-Type': 'application/json' })
-            res.end(JSON.stringify({ message: 'Route Not Found' }))
+            handleNotFound(res);
         }
     } else {
         res.end();
     }
 })
 
-const env = dotenv.config();
-server.listen(env.parsed && env.parsed.PORT, () => console.log(`Server running on Port: ${env.parsed && env.parsed.PORT}`))
+server.listen(port, () => console.log(`Server running on Port: ${port}`))
