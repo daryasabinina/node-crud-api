@@ -52,4 +52,7 @@ const server = http.createServer(async (req, res) => {
     }
 })
 
-server.listen(port, () => console.log(`Server running on Port: ${port}`))
+server.listen(port, () => console.log(`Server running on Port: ${port}`));
+
+module.exports = server
+
