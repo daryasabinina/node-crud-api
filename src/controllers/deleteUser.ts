@@ -7,7 +7,6 @@ const deleteUser = (id: string, users: Array<user>, res: ServerResponse) => {
     try {
         if (validate(id)) {
             const index = users.findIndex(u => {
-                console.log(u.id === id );
                 return u.id === id
             });
             if (index > -1) {

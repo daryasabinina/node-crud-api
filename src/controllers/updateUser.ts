@@ -1,5 +1,11 @@
 import { user } from '../types';
-import {handleInvalidID, handleInvalidInput, handleInvalidTypes, handleUserNotFound} from '../helper/errorsHandlers';
+import {
+    handleEmptyBody,
+    handleInvalidID,
+    handleInvalidInput,
+    handleInvalidTypes,
+    handleUserNotFound
+} from '../helper/errorsHandlers';
 import { validate } from 'uuid';
 import { IncomingMessage, ServerResponse } from 'http';
 import getPostData from '../helper/getPostData';
@@ -12,22 +18,26 @@ const updateUser = async (id: string, req: IncomingMessage, res: ServerResponse,
             if (specificUser) {
 
                 const body: user = await getPostData(req) as user;
-                const { username, age, hobbies } = JSON.parse(body as unknown as string);
-
-                if (!(username || age || hobbies)) {
-                    handleInvalidInput(res);
+                if (!body) {
+                    handleEmptyBody(res)
                 } else {
-                    const index = users.findIndex((u) => u.id === id)
+                    const { username, age, hobbies } = JSON.parse(body as unknown as string);
 
-                    users[index].age = age || users[index].age;
-                    users[index].username = username || users[index].username;
-                    users[index].hobbies = hobbies || users[index].hobbies.map(el => el.toString());
-                    if (typeof users[index].username !== 'string' || typeof users[index].age !== 'number' || !Array.isArray(users[index].hobbies)) {
-                        handleInvalidTypes(res);
+                    if (!(username || age || hobbies)) {
+                        handleInvalidInput(res);
                     } else {
-                        res.writeHead(200, {'Content-Type': 'application/json'});
-                        res.write(JSON.stringify(users[index]));
-                        res.end();
+                        const index = users.findIndex((u) => u.id === id)
+
+                        users[index].age = age || users[index].age;
+                        users[index].username = username || users[index].username;
+                        users[index].hobbies = hobbies || users[index].hobbies.map(el => el.toString());
+                        if (typeof users[index].username !== 'string' || typeof users[index].age !== 'number' || !Array.isArray(users[index].hobbies)) {
+                            handleInvalidTypes(res);
+                        } else {
+                            res.writeHead(200, {'Content-Type': 'application/json'});
+                            res.write(JSON.stringify(users[index]));
+                            res.end();
+                        }
                     }
                 }
             } else {

@@ -29,3 +29,8 @@ export const handleInvalidID = (res: ServerResponse) => {
     res.writeHead(400, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify('User ID not valid'));
 }
+
+export const handleEmptyBody = (res: ServerResponse) => {
+    res.writeHead(400, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify('Body cannot be empty'));
+}

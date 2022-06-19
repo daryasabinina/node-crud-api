@@ -2,9 +2,10 @@
   "name": "node-crud-api",
   "version": "1.0.0",
   "scripts": {
+    "build": "rm -d -r build  && npx tsc",
     "start:dev": "nodemon",
-    "start:prod": "rm -d -r build && npx tsc && node build/server.js",
-    "lint": "eslint . --ext .ts",
+    "start:prod": "build && node build/server.js",
+    "start:scalable": "ts-node ./src/scalable-server.ts",
     "test": "mocha --timeout 10000"
   },
   "devDependencies": {
